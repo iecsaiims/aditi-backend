@@ -1,7 +1,14 @@
 {
+  "version": 2,
   "functions": {
     "api/[...route].ts": {
       "maxDuration": 60
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/[...route].ts"
+    }
+  ]
 }
