@@ -30,8 +30,33 @@ const corsOptions: cors.CorsOptions = {
   credentials: true
 };
 
+app.use((req, res, next) => {
+  if (req.method !== 'OPTIONS' || !req.path.startsWith('/api/')) {
+    next();
+    return;
+  }
+
+  const origin = req.header('Origin');
+  if (origin && !isAllowedOrigin(origin)) {
+    res.status(403).json({ message: `Origin not allowed by CORS: ${origin}` });
+    return;
+  }
+
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    req.header('Access-Control-Request-Headers') || 'Content-Type, Authorization'
+  );
+  res.sendStatus(204);
+});
+
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
