@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  M
+  F
+  O
+}
+
+enum TriageCategory {
+  RED
+  YELLOW
+  GREEN
+  BLACK
+}
+
+enum PathwayType {
+  NonTrauma
+  Trauma
+}
+
+model User {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  password    String
+  role        String
+  displayName String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PatientTriage {
+  id            String         @id @default(cuid())
+  crNo          String         @unique
+  name          String
+  age           Int
+  gender        Gender
+  category      TriageCategory
+  area          String
+  complaint     String?
+  pathway       PathwayType
+  contactNumber String?
+  triageData    Json?
+  consultationStatus String  @default("Pending")
+  dispositionStatus  String  @default("Pending")
+  time          String
+  timestamp     DateTime
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  consultations EncConsultation[]
+  disposition   EncDisposition?
+}
+
+model EncConsultation {
+  id          String        @id @default(cuid())
+  patientId   String
+  patient     PatientTriage @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  department  String
+  doctorName  String?
+  callGivenBy String?
+  time        String?
+  completed   Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model EncDisposition {
+  id        String        @id @default(cuid())
+  patientId String        @unique
+  patient   PatientTriage @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  status    String
+  time      String
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
