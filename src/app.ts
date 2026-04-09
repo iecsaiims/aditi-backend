@@ -18,19 +18,20 @@ function isAllowedOrigin(origin: string) {
   return env.frontendOriginSuffixes.some((suffix) => origin.endsWith(suffix));
 }
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || isAllowedOrigin(origin)) {
-        callback(null, true);
-        return;
-      }
+const corsOptions: cors.CorsOptions = {
+  origin(origin, callback) {
+    if (!origin || isAllowedOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
 
-      callback(new Error(`Origin not allowed by CORS: ${origin}`));
-    },
-    credentials: true
-  })
-);
+    callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
