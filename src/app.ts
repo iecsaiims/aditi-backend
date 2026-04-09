@@ -8,9 +8,26 @@ import sttRoutes from './routes/stt.routes';
 
 const app = express();
 
+const allowedOrigins = new Set(env.frontendUrls);
+
+function isAllowedOrigin(origin: string) {
+  if (allowedOrigins.has(origin)) {
+    return true;
+  }
+
+  return env.frontendOriginSuffixes.some((suffix) => origin.endsWith(suffix));
+}
+
 app.use(
   cors({
-    origin: env.frontendUrl,
+    origin(origin, callback) {
+      if (!origin || isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    },
     credentials: true
   })
 );
