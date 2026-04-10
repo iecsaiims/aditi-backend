@@ -75,6 +75,7 @@ model EncDisposition {
   id        String        @id @default(cuid())
   patientId String        @unique
   patient   PatientTriage @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  department String
   status    String
   time      String
   notes     String?

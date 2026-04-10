@@ -16,6 +16,7 @@ type ConsultationRow = {
 type DispositionRow = {
   id: string;
   patientId: string;
+  department: string;
   status: string;
   time: string;
   notes: string | null;
@@ -115,6 +116,7 @@ export async function addEncConsultation(
 export async function saveEncDisposition(
   patientId: string,
   payload: {
+    department: string;
     status: string;
     time: string;
     notes?: string;
@@ -125,6 +127,7 @@ export async function saveEncDisposition(
     INSERT INTO "EncDisposition" (
       "id",
       "patientId",
+      "department",
       "status",
       "time",
       "notes",
@@ -134,6 +137,7 @@ export async function saveEncDisposition(
     VALUES (
       ${id},
       ${patientId},
+      ${payload.department},
       ${payload.status},
       ${payload.time},
       ${payload.notes ?? null},
@@ -141,6 +145,7 @@ export async function saveEncDisposition(
       NOW()
     )
     ON CONFLICT ("patientId") DO UPDATE SET
+      "department" = EXCLUDED."department",
       "status" = EXCLUDED."status",
       "time" = EXCLUDED."time",
       "notes" = EXCLUDED."notes",

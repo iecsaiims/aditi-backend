@@ -12,6 +12,7 @@ const consultationSchema = z.object({
 });
 
 const dispositionSchema = z.object({
+  department: z.string().min(1),
   status: z.string().min(1),
   time: z.string().min(1),
   notes: z.string().optional()
