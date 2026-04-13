@@ -29,11 +29,17 @@ enum PathwayType {
 model User {
   id          String   @id @default(cuid())
   username    String   @unique
+  email       String?  @unique
   password    String
   role        String
   displayName String
+  designation String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  triages       PatientTriage[]   @relation("TriageSubmittedBy")
+  consultations EncConsultation[] @relation("ConsultationSubmittedBy")
+  dispositions  EncDisposition[]  @relation("DispositionSubmittedBy")
 }
 
 model PatientTriage {
@@ -48,12 +54,17 @@ model PatientTriage {
   pathway       PathwayType
   contactNumber String?
   triageData    Json?
+  respiratorySupport String?
   consultationStatus String  @default("Pending")
   dispositionStatus  String  @default("Pending")
   time          String
   timestamp     DateTime
+  submittedByUserId String?
+  submittedBy       String?
+  designation       String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  submittedByUser   User?          @relation("TriageSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
   consultations EncConsultation[]
   disposition   EncDisposition?
 }
@@ -65,10 +76,15 @@ model EncConsultation {
   department  String
   doctorName  String?
   callGivenBy String?
+  date        String?
   time        String?
   completed   Boolean       @default(false)
+  submittedByUserId String?
+  submittedBy       String?
+  designation       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  submittedByUser User?      @relation("ConsultationSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
 }
 
 model EncDisposition {
@@ -77,8 +93,13 @@ model EncDisposition {
   patient   PatientTriage @relation(fields: [patientId], references: [id], onDelete: Cascade)
   department String
   status    String
+  date      String?
   time      String
   notes     String?
+  submittedByUserId String?
+  submittedBy       String?
+  designation       String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+  submittedByUser User?    @relation("DispositionSubmittedBy", fields: [submittedByUserId], references: [id], onDelete: SetNull)
 }

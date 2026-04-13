@@ -28,6 +28,8 @@ const frontendOriginSuffixes = parseCsvEnv(process.env.FRONTEND_ORIGIN_SUFFIXES)
 export const env = {
   port: Number(process.env.PORT || 4000),
   databaseUrl: process.env.DATABASE_URL || '',
+  authSecret: process.env.AUTH_SECRET || 'change-me',
+  authTokenTtlHours: Number(process.env.AUTH_TOKEN_TTL_HOURS || 216),
   frontendUrl: frontendUrls[0] || 'http://localhost:5173',
   frontendUrls,
   frontendOriginSuffixes,

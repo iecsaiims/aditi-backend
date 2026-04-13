@@ -7,6 +7,8 @@
 - Set these environment variables:
   - `DATABASE_URL`
   - `DIRECT_URL`
+  - `AUTH_SECRET`
+  - `AUTH_TOKEN_TTL_HOURS`
   - `FRONTEND_URL`
   - `FRONTEND_URLS`
   - `FRONTEND_ORIGIN_SUFFIXES`
@@ -37,6 +39,15 @@
 - Run Prisma migrations from CI or a controlled deploy step against the target database.
 - Do not run `prisma migrate dev` in production.
 - Use `npm run prisma:deploy` for production or staging schema application.
+- Public signup is disabled.
+- Bootstrap the first admin directly in Supabase SQL, then use the admin UI/API to create later staff accounts.
+
+## First admin bootstrap
+
+- Generate a password hash with the backend's scrypt format:
+  - `node -e "const { randomBytes, scryptSync } = require('crypto'); const password='ChangeMe123!'; const salt=randomBytes(16).toString('hex'); const hash=scryptSync(password, salt, 64).toString('hex'); console.log(`${salt}:${hash}`);"`
+- Insert the first admin in Supabase SQL:
+  - `INSERT INTO "User" ("id","username","email","password","role","displayName","designation","createdAt","updatedAt") VALUES (gen_random_uuid()::text,'admin@hospital.org','admin@hospital.org','<salt:hash>','admin','Hospital Admin','Admin',NOW(),NOW());`
 
 ## GitHub Actions migration workflow
 

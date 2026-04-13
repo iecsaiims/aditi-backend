@@ -14,6 +14,7 @@ const patientSchema = z.object({
   pathway: z.enum(['NonTrauma', 'Trauma']),
   contactNumber: z.string().optional(),
   triageData: z.unknown().optional(),
+  respiratorySupport: z.enum(['Room Air', 'On Oxygen', 'On NIV', 'On Ventilatory support']),
   consultationStatus: z.string().optional(),
   dispositionStatus: z.string().optional(),
   time: z.string().min(1),
@@ -33,7 +34,11 @@ export async function listPatients(_req: Request, res: Response) {
 export async function storePatient(req: Request, res: Response) {
   try {
     const payload = patientSchema.parse(req.body);
-    const result = await createPatient(payload as Parameters<typeof createPatient>[0]);
+    if (!req.authUser) {
+      return sendError(res, 'Authentication required', 401);
+    }
+
+    const result = await createPatient(payload as Parameters<typeof createPatient>[0], req.authUser);
     return sendSuccess(res, result, 201);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not save patient';

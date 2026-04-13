@@ -1,6 +1,6 @@
-import { randomUUID } from 'crypto';
 import { Gender, PathwayType, Prisma, TriageCategory } from '@prisma/client';
 import { prisma } from '../config/prisma';
+import type { AuthUser } from '../utils/auth';
 
 type PatientRow = {
   id: string;
@@ -14,10 +14,14 @@ type PatientRow = {
   pathway: PathwayType;
   contactNumber: string | null;
   triageData: unknown | null;
+  respiratorySupport: string | null;
   consultationStatus: string;
   dispositionStatus: string;
   time: string;
   timestamp: Date;
+  submittedByUserId: string | null;
+  submittedBy: string | null;
+  designation: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -52,56 +56,35 @@ export async function createPatient(payload: {
   pathway: PathwayType;
   contactNumber?: string;
   triageData?: Prisma.InputJsonValue;
+  respiratorySupport: string;
   consultationStatus?: string;
   dispositionStatus?: string;
   time: string;
   timestamp: string;
-}) {
-  const id = randomUUID();
+}, authUser: AuthUser) {
   const timestamp = new Date(payload.timestamp);
-  const triageData = payload.triageData === undefined ? null : JSON.stringify(payload.triageData);
+  const created = await prisma.patientTriage.create({
+    data: {
+      crNo: payload.crNo,
+      name: payload.name,
+      age: payload.age,
+      gender: payload.gender,
+      category: payload.category,
+      area: payload.area,
+      complaint: payload.complaint ?? null,
+      pathway: payload.pathway,
+      contactNumber: payload.contactNumber ?? null,
+      triageData: payload.triageData ?? Prisma.JsonNull,
+      respiratorySupport: payload.respiratorySupport,
+      consultationStatus: payload.consultationStatus ?? 'Pending',
+      dispositionStatus: payload.dispositionStatus ?? 'Pending',
+      time: payload.time,
+      timestamp,
+      submittedByUserId: authUser.id,
+      submittedBy: authUser.displayName,
+      designation: authUser.designation ?? null,
+    },
+  });
 
-  const created = await prisma.$queryRaw<PatientRow[]>`
-    INSERT INTO "PatientTriage" (
-      "id",
-      "crNo",
-      "name",
-      "age",
-      "gender",
-      "category",
-      "area",
-      "complaint",
-      "pathway",
-      "contactNumber",
-      "triageData",
-      "consultationStatus",
-      "dispositionStatus",
-      "time",
-      "timestamp",
-      "createdAt",
-      "updatedAt"
-    )
-    VALUES (
-      ${id},
-      ${payload.crNo},
-      ${payload.name},
-      ${payload.age},
-      ${payload.gender}::"Gender",
-      ${payload.category}::"TriageCategory",
-      ${payload.area},
-      ${payload.complaint ?? null},
-      ${payload.pathway}::"PathwayType",
-      ${payload.contactNumber ?? null},
-      ${triageData}::jsonb,
-      ${payload.consultationStatus ?? 'Pending'},
-      ${payload.dispositionStatus ?? 'Pending'},
-      ${payload.time},
-      ${timestamp},
-      NOW(),
-      NOW()
-    )
-    RETURNING *
-  `;
-
-  return serializePatient(created[0]);
+  return serializePatient(created as PatientRow);
 }
