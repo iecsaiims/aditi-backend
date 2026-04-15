@@ -156,7 +156,7 @@ export async function saveEncDisposition(
   await prisma.patientTriage.update({
     where: { id: patientId },
     data: {
-      dispositionStatus: 'Completed',
+      dispositionStatus: payload.status,
     },
   });
 
