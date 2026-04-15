@@ -54,7 +54,7 @@ export async function createPatient(payload: {
   area: string;
   complaint?: string;
   pathway: PathwayType;
-  contactNumber?: string;
+  contactNumber: string;
   triageData?: Prisma.InputJsonValue;
   respiratorySupport: string;
   consultationStatus?: string;
@@ -63,28 +63,43 @@ export async function createPatient(payload: {
   timestamp: string;
 }, authUser: AuthUser) {
   const timestamp = new Date(payload.timestamp);
-  const created = await prisma.patientTriage.create({
-    data: {
-      crNo: payload.crNo,
-      name: payload.name,
-      age: payload.age,
-      gender: payload.gender,
-      category: payload.category,
-      area: payload.area,
-      complaint: payload.complaint ?? null,
-      pathway: payload.pathway,
-      contactNumber: payload.contactNumber ?? null,
-      triageData: payload.triageData ?? Prisma.JsonNull,
-      respiratorySupport: payload.respiratorySupport,
-      consultationStatus: payload.consultationStatus ?? 'Pending',
-      dispositionStatus: payload.dispositionStatus ?? 'Pending',
-      time: payload.time,
-      timestamp,
-      submittedByUserId: authUser.id,
-      submittedBy: authUser.displayName,
-      designation: authUser.designation ?? null,
-    },
-  });
+  let created;
+
+  try {
+    created = await prisma.patientTriage.create({
+      data: {
+        crNo: payload.crNo,
+        name: payload.name,
+        age: payload.age,
+        gender: payload.gender,
+        category: payload.category,
+        area: payload.area,
+        complaint: payload.complaint ?? null,
+        pathway: payload.pathway,
+        contactNumber: payload.contactNumber.trim(),
+        triageData: payload.triageData ?? Prisma.JsonNull,
+        respiratorySupport: payload.respiratorySupport,
+        consultationStatus: payload.consultationStatus ?? 'Pending',
+        dispositionStatus: payload.dispositionStatus ?? 'Pending',
+        time: payload.time,
+        timestamp,
+        submittedByUserId: authUser.id,
+        submittedBy: authUser.displayName,
+        designation: authUser.designation ?? null,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002' &&
+      Array.isArray(error.meta?.target) &&
+      error.meta.target.includes('crNo')
+    ) {
+      throw new Error(`CR Number ${payload.crNo} already exists.`);
+    }
+
+    throw error;
+  }
 
   return serializePatient(created as PatientRow);
 }

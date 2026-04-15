@@ -12,7 +12,7 @@ const patientSchema = z.object({
   area: z.string().min(1),
   complaint: z.string().optional(),
   pathway: z.enum(['NonTrauma', 'Trauma']),
-  contactNumber: z.string().optional(),
+  contactNumber: z.string().min(1, 'Contact Number is required'),
   triageData: z.unknown().optional(),
   respiratorySupport: z.enum(['Room Air', 'On Oxygen', 'On NIV', 'On Ventilatory support']),
   consultationStatus: z.string().optional(),
