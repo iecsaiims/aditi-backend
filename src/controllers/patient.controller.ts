@@ -17,8 +17,8 @@ const patientSchema = z.object({
   respiratorySupport: z.enum(['Room Air', 'On Oxygen', 'On NIV', 'On Ventilatory support']),
   consultationStatus: z.string().optional(),
   dispositionStatus: z.string().optional(),
-  time: z.string().min(1),
-  timestamp: z.string().datetime()
+  time: z.string().min(1).optional(),
+  timestamp: z.string().datetime().optional()
 });
 
 export async function listPatients(_req: Request, res: Response) {

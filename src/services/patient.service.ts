@@ -2,6 +2,13 @@ import { Gender, PathwayType, Prisma, TriageCategory } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import type { AuthUser } from '../utils/auth';
 
+const IST_TIME_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Kolkata',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
 type PatientRow = {
   id: string;
   crNo: string;
@@ -59,10 +66,11 @@ export async function createPatient(payload: {
   respiratorySupport: string;
   consultationStatus?: string;
   dispositionStatus?: string;
-  time: string;
-  timestamp: string;
+  time?: string;
+  timestamp?: string;
 }, authUser: AuthUser) {
-  const timestamp = new Date(payload.timestamp);
+  const createdAt = new Date();
+  const triageTime = IST_TIME_FORMATTER.format(createdAt);
   let created;
 
   try {
@@ -81,8 +89,8 @@ export async function createPatient(payload: {
         respiratorySupport: payload.respiratorySupport,
         consultationStatus: payload.consultationStatus ?? 'Pending',
         dispositionStatus: payload.dispositionStatus ?? 'Pending',
-        time: payload.time,
-        timestamp,
+        time: triageTime,
+        timestamp: createdAt,
         submittedByUserId: authUser.id,
         submittedBy: authUser.displayName,
         designation: authUser.designation ?? null,
